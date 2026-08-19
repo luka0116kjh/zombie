@@ -68,6 +68,24 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
   circle(g, 17, 7, 1.4, 0x1a0a05)
   g.generateTexture('runner', 26, 41)
 
+  // ---- Brute (heavy infected — bulky, dark, menacing silhouette) ----
+  g.clear()
+  g.fillStyle(0x1c0f10, 1) // dark mass, reads as heavier than Walker/Runner
+  g.fillRoundedRect(2, 16, 34, 34, 4)
+  g.fillStyle(0x4a1414, 1) // exposed muscle/wound tone
+  g.fillRoundedRect(6, 20, 26, 22, 3)
+  g.fillStyle(0x6b6258, 1) // pale scarred head
+  g.fillCircle(19, 12, 10)
+  g.fillStyle(0x1c0f10, 1)
+  g.fillRect(4, 48, 10, 14) // legs, wide stance
+  g.fillRect(24, 48, 10, 14)
+  g.fillStyle(0x2a1a1a, 1) // heavy arms
+  g.fillRect(-2, 22, 10, 26)
+  g.fillRect(30, 22, 10, 26)
+  circle(g, 14, 11, 2, 0xd93b3b) // glowing red eyes — reads as dangerous at a glance
+  circle(g, 24, 11, 2, 0xd93b3b)
+  g.generateTexture('brute', 40, 62)
+
   // ---- Bullet ----
   g.clear()
   g.fillStyle(0xfff3b0, 1)

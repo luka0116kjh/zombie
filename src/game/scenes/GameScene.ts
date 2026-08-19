@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { GAME_WIDTH, GAME_HEIGHT, DEPTH } from '../config/gameConfig'
-import { HITSTOP_MS, RANDOM_SPAWN } from '../config/balance'
+import { HITSTOP_MS, RANDOM_SPAWN, BRUTE_SPAWN } from '../config/balance'
 import { ENEMIES } from '../config/enemies'
 import { Player, type PlayerInput } from '../entities/player/Player'
 import { Zombie } from '../entities/enemies/Zombie'
@@ -40,6 +40,7 @@ export class GameScene extends Phaser.Scene {
   private scoreSystem!: ScoreSystem
   private zombies!: Phaser.Physics.Arcade.Group
   private spawnTimer!: Phaser.Time.TimerEvent
+  private bruteSpawnTimer!: Phaser.Time.TimerEvent
 
   private keys!: Record<string, Phaser.Input.Keyboard.Key>
   private bgFar!: Phaser.GameObjects.TileSprite
@@ -87,6 +88,14 @@ export class GameScene extends Phaser.Scene {
     this.zombies = this.physics.add.group({ gravityY: 1500, collideWorldBounds: true })
     for (const spawn of ENEMY_SPAWNS) this.spawnZombie(spawn.type, spawn.x)
 
+    // Brutes from the very start: staggered ahead of the player rather
+    // than stacked on one spot, and still off-screen at spawn time so
+    // the opening seconds stay survivable instead of an instant swarm.
+    for (let i = 0; i < BRUTE_SPAWN.INITIAL_COUNT; i++) {
+      const x = this.player.x + BRUTE_SPAWN.MIN_DISTANCE_FROM_PLAYER + i * 160
+      this.spawnZombie('brute', Phaser.Math.Clamp(x, 60, LEVEL_WIDTH - 60))
+    }
+
     this.physics.add.collider(this.zombies, this.groundCollider)
     this.physics.add.collider(this.player, this.zombies)
     this.physics.add.overlap(
@@ -101,6 +110,13 @@ export class GameScene extends Phaser.Scene {
       delay: RANDOM_SPAWN.INTERVAL_MS,
       loop: true,
       callback: this.spawnRandomWave,
+      callbackScope: this,
+    })
+
+    this.bruteSpawnTimer = this.time.addEvent({
+      delay: BRUTE_SPAWN.INTERVAL_MS,
+      loop: true,
+      callback: this.spawnBruteWave,
       callbackScope: this,
     })
 
@@ -159,17 +175,34 @@ export class GameScene extends Phaser.Scene {
     this.zombies.add(zombie)
   }
 
+  /** A random off-screen x, on either side of the player, clamped to the level. */
+  private randomOffscreenX(minDist: number, maxDist: number): number {
+    const side = Math.random() < 0.5 ? -1 : 1
+    const dist = Phaser.Math.Between(minDist, maxDist)
+    return Phaser.Math.Clamp(this.player.x + side * dist, 60, LEVEL_WIDTH - 60)
+  }
+
   /** Recurring reinforcement wave: a few random zombies, off-screen, every few seconds. */
   private spawnRandomWave() {
     if (this.levelComplete || this.player.isDead) return
     if (this.zombies.countActive(true) >= RANDOM_SPAWN.MAX_ACTIVE_ZOMBIES) return
 
     for (let i = 0; i < RANDOM_SPAWN.COUNT_PER_WAVE; i++) {
-      const side = Math.random() < 0.5 ? -1 : 1
-      const dist = Phaser.Math.Between(RANDOM_SPAWN.MIN_DISTANCE_FROM_PLAYER, RANDOM_SPAWN.MAX_DISTANCE_FROM_PLAYER)
-      const x = Phaser.Math.Clamp(this.player.x + side * dist, 60, LEVEL_WIDTH - 60)
+      const x = this.randomOffscreenX(RANDOM_SPAWN.MIN_DISTANCE_FROM_PLAYER, RANDOM_SPAWN.MAX_DISTANCE_FROM_PLAYER)
       const type: keyof typeof ENEMIES = Math.random() < RANDOM_SPAWN.RUNNER_CHANCE ? 'runner' : 'walker'
       this.spawnZombie(type, x)
+    }
+  }
+
+  /** Recurring Brute reinforcement wave — heavier, rarer, capped separately from the regular horde. */
+  private spawnBruteWave() {
+    if (this.levelComplete || this.player.isDead) return
+    const activeBrutes = (this.zombies.getChildren() as Zombie[]).filter((z) => !z.isDead && z.cfg.id === 'brute')
+    if (activeBrutes.length >= BRUTE_SPAWN.MAX_ACTIVE_BRUTES) return
+
+    for (let i = 0; i < BRUTE_SPAWN.COUNT_PER_WAVE; i++) {
+      const x = this.randomOffscreenX(BRUTE_SPAWN.MIN_DISTANCE_FROM_PLAYER, BRUTE_SPAWN.MAX_DISTANCE_FROM_PLAYER)
+      this.spawnZombie('brute', x)
     }
   }
 
@@ -286,6 +319,7 @@ export class GameScene extends Phaser.Scene {
   private togglePause() {
     this.paused = !this.paused
     this.spawnTimer.paused = this.paused
+    this.bruteSpawnTimer.paused = this.paused
     EventBus.emit(GameEvents.GAME_PAUSE_TOGGLED, { paused: this.paused })
   }
 }

@@ -66,6 +66,24 @@ export const RUNNER = {
   STAGGER_MS: 120,
 } as const
 
+// Heavy infected — reuses the generic Zombie AI (no charge/ground-slam
+// yet, see CLAUDE.md #12) but hits much harder and soaks far more
+// damage than a Walker/Runner. Deliberately tougher than anything else
+// in this vertical slice since there's no real boss encounter yet.
+export const BRUTE = {
+  HP: 140,
+  MOVE_SPEED: 34,
+  DAMAGE: 22,
+  ATTACK_RANGE: 42,
+  ATTACK_COOLDOWN_MS: 1300,
+  ATTACK_WINDUP_MS: 480, // slow, heavily telegraphed swing — stays fair even though it hits hard
+  DETECT_RANGE: 420,
+  LOSE_INTEREST_RANGE: 720,
+  SCORE: 800,
+  KNOCKBACK: 60,
+  STAGGER_MS: 90, // resists stagger compared to Walker/Runner
+} as const
+
 export const COMBO = {
   TIMEOUT_MS: 2500,
 } as const
@@ -77,6 +95,15 @@ export const RANDOM_SPAWN = {
   MIN_DISTANCE_FROM_PLAYER: 520, // off-screen (half viewport + margin) — never spawn on top of the player (CLAUDE.md #56)
   MAX_DISTANCE_FROM_PLAYER: 900,
   RUNNER_CHANCE: 0.3,
+} as const
+
+export const BRUTE_SPAWN = {
+  INITIAL_COUNT: 5,
+  INTERVAL_MS: 5000,
+  COUNT_PER_WAVE: 5,
+  MAX_ACTIVE_BRUTES: 20, // cap kept generous but bounded — still a hard fight, never a physics/perf meltdown
+  MIN_DISTANCE_FROM_PLAYER: 560,
+  MAX_DISTANCE_FROM_PLAYER: 1100,
 } as const
 
 export const CAMERA = {

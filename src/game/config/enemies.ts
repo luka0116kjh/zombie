@@ -1,4 +1,4 @@
-import { WALKER, RUNNER } from './balance'
+import { WALKER, RUNNER, BRUTE } from './balance'
 
 export interface EnemyConfig {
   id: string
@@ -54,5 +54,22 @@ export const ENEMIES: Record<string, EnemyConfig> = {
     staggerMs: RUNNER.STAGGER_MS,
     bodyWidth: 16,
     bodyHeight: 32,
+  },
+  brute: {
+    id: 'brute',
+    textureKey: 'brute',
+    hp: BRUTE.HP,
+    moveSpeed: BRUTE.MOVE_SPEED,
+    damage: BRUTE.DAMAGE,
+    attackRange: BRUTE.ATTACK_RANGE,
+    attackCooldownMs: BRUTE.ATTACK_COOLDOWN_MS,
+    attackWindupMs: BRUTE.ATTACK_WINDUP_MS,
+    detectRange: BRUTE.DETECT_RANGE,
+    loseInterestRange: BRUTE.LOSE_INTEREST_RANGE,
+    score: BRUTE.SCORE,
+    knockback: BRUTE.KNOCKBACK,
+    staggerMs: BRUTE.STAGGER_MS,
+    bodyWidth: 30,
+    bodyHeight: 52,
   },
 }
