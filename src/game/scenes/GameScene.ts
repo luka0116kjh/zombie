@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { GAME_WIDTH, GAME_HEIGHT, DEPTH } from '../config/gameConfig'
-import { HITSTOP_MS } from '../config/balance'
+import { HITSTOP_MS, RANDOM_SPAWN } from '../config/balance'
 import { ENEMIES } from '../config/enemies'
 import { Player, type PlayerInput } from '../entities/player/Player'
 import { Zombie } from '../entities/enemies/Zombie'
@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private fx!: FxSystem
   private scoreSystem!: ScoreSystem
   private zombies!: Phaser.Physics.Arcade.Group
+  private spawnTimer!: Phaser.Time.TimerEvent
 
   private keys!: Record<string, Phaser.Input.Keyboard.Key>
   private bgFar!: Phaser.GameObjects.TileSprite
@@ -96,6 +97,13 @@ export class GameScene extends Phaser.Scene {
       this
     )
 
+    this.spawnTimer = this.time.addEvent({
+      delay: RANDOM_SPAWN.INTERVAL_MS,
+      loop: true,
+      callback: this.spawnRandomWave,
+      callbackScope: this,
+    })
+
     this.setupInput()
     this.setupEventListeners()
   }
@@ -149,6 +157,20 @@ export class GameScene extends Phaser.Scene {
     const cfg = ENEMIES[type]
     const zombie = new Zombie(this, x, GROUND_TOP - 40, cfg, this.attackSlots)
     this.zombies.add(zombie)
+  }
+
+  /** Recurring reinforcement wave: a few random zombies, off-screen, every few seconds. */
+  private spawnRandomWave() {
+    if (this.levelComplete || this.player.isDead) return
+    if (this.zombies.countActive(true) >= RANDOM_SPAWN.MAX_ACTIVE_ZOMBIES) return
+
+    for (let i = 0; i < RANDOM_SPAWN.COUNT_PER_WAVE; i++) {
+      const side = Math.random() < 0.5 ? -1 : 1
+      const dist = Phaser.Math.Between(RANDOM_SPAWN.MIN_DISTANCE_FROM_PLAYER, RANDOM_SPAWN.MAX_DISTANCE_FROM_PLAYER)
+      const x = Phaser.Math.Clamp(this.player.x + side * dist, 60, LEVEL_WIDTH - 60)
+      const type: keyof typeof ENEMIES = Math.random() < RANDOM_SPAWN.RUNNER_CHANCE ? 'runner' : 'walker'
+      this.spawnZombie(type, x)
+    }
   }
 
   private setupInput() {
@@ -263,6 +285,7 @@ export class GameScene extends Phaser.Scene {
 
   private togglePause() {
     this.paused = !this.paused
+    this.spawnTimer.paused = this.paused
     EventBus.emit(GameEvents.GAME_PAUSE_TOGGLED, { paused: this.paused })
   }
 }

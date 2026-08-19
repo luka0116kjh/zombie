@@ -70,6 +70,15 @@ export const COMBO = {
   TIMEOUT_MS: 2500,
 } as const
 
+export const RANDOM_SPAWN = {
+  INTERVAL_MS: 5000,
+  COUNT_PER_WAVE: 3,
+  MAX_ACTIVE_ZOMBIES: 24, // hard cap so an endless timer can't snowball into a performance problem
+  MIN_DISTANCE_FROM_PLAYER: 520, // off-screen (half viewport + margin) — never spawn on top of the player (CLAUDE.md #56)
+  MAX_DISTANCE_FROM_PLAYER: 900,
+  RUNNER_CHANCE: 0.3,
+} as const
+
 export const CAMERA = {
   LERP_X: 0.09,
   LERP_Y: 0.12,
