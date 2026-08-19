@@ -1,5 +1,7 @@
 # DEADLINE: OUTBREAK
 
+**[한국어](README.ko.md)**
+
 A 2D side-scrolling zombie run-and-gun, built for the browser and playable from a static GitHub Pages deploy — no server, no database, no login.
 
 > A quarantine operation has failed. The city is being abandoned. One route to the evacuation zone is left.
